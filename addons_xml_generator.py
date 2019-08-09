@@ -22,7 +22,7 @@
  
 """ addons.xml generator """
 
-import csv, sys, os, shutil, zipfile
+import csv, sys, os, shutil, zipfile, xmltodict
 from jinja2 import Environment, FileSystemLoader
 from urllib.request import urlopen
 
@@ -35,7 +35,7 @@ class Generator:
 	def __init__( self ):
 		
 		# start
-		addons = []
+		addons = {}
 
 		# read csv & load information from github
 		with open('github_repos.csv', 'r') as csvFile:
@@ -46,12 +46,13 @@ class Generator:
 				data = file.read()
 				file.close()
 
-				addons.append(data)
+				addons[row[0]] = data
 		csvFile.close()
 
 
 		self._generate_addons_file(addons)
 		self._generate_md5_file()
+		self._generate_downloader(addons)
 		# notify user
 		print("Finished updating addons xml and md5 files")
 
@@ -63,21 +64,16 @@ class Generator:
 		for addon in addons:
 			try:
 				# split lines for stripping
-				xml_lines = addon.splitlines()
+				xml_lines = addons[addon].splitlines()
 				# new addon
 				addon_xml = ""
 				# loop thru cleaning each line
 				for line in xml_lines:
 					# skip encoding format line
 					line = line.decode()
-					print(line)
 					if ( line.find( "<?xml" ) >= 0 ): continue
 					# add line
-					if sys.version < '3':
-						#addon_xml += unicode( line.rstrip() + "\n", "UTF-8" )
-						print("oups")
-					else:
-						addon_xml += line.rstrip() + "\n"
+					addon_xml += line.rstrip() + "\n"
 				# we succeeded so add to our final addons.xml text
 				addons_xml += addon_xml.rstrip() + "\n\n"
 			except Exception as e:
@@ -104,6 +100,50 @@ class Generator:
 			# oops
 			print("An error occurred creating addons.xml.md5 file!\n%s" % e)
 
+	def _generate_downloader( self, addons ):
+		repoPath = 'build/repo/'
+
+		if(os.path.isdir(repoPath)):
+			shutil.rmtree(repoPath)
+		os.mkdir(repoPath)
+
+		for addon in addons:
+			add = xmltodict.parse(addons[addon])
+			
+			zipFolderPath = repoPath + add['addon']['@id'] + '/'
+			zipFilePath = zipFolderPath + add['addon']['@id'] + '-' + add['addon']['@version'] + '.zip'
+
+			os.mkdir(zipFolderPath)
+			
+			# download github repo
+			filedata = urlopen('https://github.com/' + addon +'/archive/master.zip')
+			datatowrite = filedata.read()
+			with open(zipFilePath, 'wb') as f:
+				f.write(datatowrite)
+
+			# extract
+			folderRoot = ''
+			with zipfile.ZipFile(zipFilePath, 'r') as zip_ref:
+				folderRoot = zip_ref.namelist()[0]
+				zip_ref.extractall(zipFolderPath)
+				zip_ref.close()
+			
+			# rename root Folder
+			os.rename(zipFolderPath + folderRoot, zipFolderPath + add['addon']['@id']) # + '-' + add['addon']['@version'])
+
+			#zip
+			self._zipdir(zipFolderPath + add['addon']['@id'], add['addon']['@id'] + '-' + add['addon']['@version'] + '.zip')
+			shutil.rmtree(zipFolderPath + add['addon']['@id'])
+
+	def _zipdir(self, folder, filename):
+		rootDir = '/'.join(folder.split('/')[:-1])
+		zipf = zipfile.ZipFile(rootDir + '/' + filename, 'w', zipfile.ZIP_DEFLATED)
+		for root, dirs, files in os.walk(folder):
+			for file in files:
+				path = root + '/' + file
+				zipf.write(path, path.replace(rootDir, ''))
+		zipf.close()
+
 	def _save_file( self, data, file ):
 		try:
 			# write data to the file (use b for Python 3)
@@ -113,9 +153,10 @@ class Generator:
 			print("An error occurred saving %s file!\n%s" % ( file, e ))
 
 
-class GeneratorRepo:
+class GeneratorAddonRepo:
 
-	TEMPLATE='repo.xml.j2'
+	TEMPLATE='addon-repo/repo.xml.j2'
+	ICON='addon-repo/icon.png'
 
 	def __init__( self, githubRepo ):
 
@@ -126,9 +167,8 @@ class GeneratorRepo:
 
 	def render( self ):
 		env = Environment(loader=FileSystemLoader('.'))
-		template = env.get_template(GeneratorRepo.TEMPLATE)
+		template = env.get_template(GeneratorAddonRepo.TEMPLATE)
 		output_from_parsed_template = template.render(repo=self.githubRepo, user = self.githubUser)
-		print(output_from_parsed_template)
 
 		tempDir = 'repository.' + self.githubUser
 
@@ -141,7 +181,7 @@ class GeneratorRepo:
 		with open(tempDir + "/addon.xml", "w") as fh:
 			fh.write(output_from_parsed_template)
 
-		shutil.copy('icon.png', tempDir + '/icon.png')
+		shutil.copy(GeneratorAddonRepo.ICON, tempDir + '/icon.png')
 
 		zipf = zipfile.ZipFile('build/repository.' + self.githubUser + '.zip', 'w', zipfile.ZIP_DEFLATED)
 		zipf.write(tempDir + "/addon.xml")
@@ -157,4 +197,4 @@ if ( __name__ == "__main__" ):
 		Generator()
 	else:
 		Generator()
-		GeneratorRepo(sys.argv[1])
+		GeneratorAddonRepo(sys.argv[1])
