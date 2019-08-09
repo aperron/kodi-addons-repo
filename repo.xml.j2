@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="repository.{{ user }}.{{repo }}" name="{{ user }}'s repo" version="1.0.1" provider-name="{{ user }}">
+        <extension point="xbmc.addon.repository" name="{{ user }}'s addons">
+                <info compressed="false">https://raw.github.com/{{ user }}/{{ repo }}/master/build/addons.xml</info>
+                <checksum>https://raw.github.com/{{ user }}/{{ repo }}/master/build/addons.xml.md5</checksum>
+                <datadir zip="true">https://raw.github.com/{{ user }}/{{ repo }}/master/build</datadir>
+        </extension>
+        <extension point="xbmc.addon.metadata">
+                <summary>{{ repo }}</summary>
+                <description>Addons by {{ user }}</description>
+                <disclaimer></disclaimer>
+                <platform>all</platform>
+        </extension>
+</addon>
+
+

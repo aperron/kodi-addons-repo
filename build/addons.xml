@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addons>
+<addon id="script.simple.steam.launcher" name="Simple Steam Launcher" version="1.0.0" provider-name="arucard">
+	<requires>
+		<import addon="xbmc.python" version="2.1.0"/>
+	</requires>
+	<extension point="xbmc.python.script" library="addon.py">
+		<provides>executable</provides>
+	</extension>
+	<extension point="xbmc.addon.metadata">
+		<platform>all</platform>
+		<language/>
+		<summary lang="en">A simple add-on that allows you to launch the Steam client.</summary>
+		<description lang="en">The Simple Steam Launcher provides a way to launch the Steam client from within Kodi. It is intended to have minimal features, instead relying on user-defined scripts to provide additional, more advanced functionality. &#xA;&#xA;You can specify where the Steam client is located but you can not provide any parameters (Note that you can configure the Steam client to start up in Big Picture mode by default). You can also configure this add-on to shut down Kodi when you launch the Steam client, but Kodi is not automatically restarted when you exit the Steam client again. &#xA;&#xA;Instead of specifying the Steam client directly, you can also specify the location of a script for your Operating System (e.g. a .bat file on Windows or a .sh file on *nix) that will launch the Steam client for you, including any pre- and post-processing you require.</description>
+		<license>GNU General Public License, v2</license>
+		<disclaimer lang="en">This add-on is not endorsed by nor affiliated with Valve Corporation. Steam and the Steam logo are trademarks and/or registered trademarks of Valve Corporation in the U.S. and/or other countries.</disclaimer>
+		<news>v1.0.0
+		- Initial release
+		</news>
+		<forum/>
+		<website>https://github.com/arucard21/script.simple.steam.launcher</website>
+		<source>https://github.com/arucard21/script.simple.steam.launcher</source>
+		<email>arucard21 at gmail dot com</email>
+		<assets>
+			<icon>icon.png</icon>
+			<fanart>fanart.jpg</fanart>
+		</assets>
+	</extension>
+</addon>
+</addons>
