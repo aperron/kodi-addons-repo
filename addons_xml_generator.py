@@ -152,9 +152,9 @@ class GeneratorRepo:
 
 
 if ( __name__ == "__main__" ):
-	for arg in sys.argv[1:]:
-		print(arg)
-		
-	# start
-	Generator()
-	GeneratorRepo(sys.argv[1])
+	if len(sys.argv) == 1:
+		print("no github repo in arg. Just regenerate addons.xml")
+		Generator()
+	else:
+		Generator()
+		GeneratorRepo(sys.argv[1])
